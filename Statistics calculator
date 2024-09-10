@@ -1,0 +1,109 @@
+import 'package:flutter/material.dart';
+import 'dart:math';
+
+void main() {
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Statistics calculator',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: StatisticsCalculator(),
+    );
+  }
+}
+
+class StatisticsCalculator extends StatefulWidget {
+  @override
+  _StatisticsCalculatorState createState() => _StatisticsCalculatorState();
+}
+
+class _StatisticsCalculatorState extends State<StatisticsCalculator> {
+  final TextEditingController _controller = TextEditingController();
+  List<double> _numbers = [];
+  String _result = '';
+
+  void _calculateStatistics() {
+    if (_controller.text.isEmpty) {
+      return;
+    }
+
+    _numbers = _controller.text
+        .split(',')
+        .map((item) => double.tryParse(item.trim()) ?? 0)
+        .toList();
+
+    double mean = _calculateMean(_numbers);
+    double median = _calculateMedian(_numbers);
+    double stdDev = _calculateStandardDeviation(_numbers, mean);
+
+    setState(() {
+      _result = 'Mean: $mean\nMedian: $median\nStandard deviation: $stdDev';
+    });
+  }
+
+  double _calculateMean(List<double> numbers) {
+    if (numbers.isEmpty) return 0.0;
+    final sum = numbers.reduce((a, b) => a + b);
+    return sum / numbers.length;
+  }
+
+  double _calculateMedian(List<double> numbers) {
+    if (numbers.isEmpty) return 0.0;
+    numbers.sort();
+    int middle = numbers.length ~/ 2;
+    if (numbers.length % 2 == 1) {
+      return numbers[middle];
+    } else {
+      return (numbers[middle - 1] + numbers[middle]) / 2;
+    }
+  }
+
+  double _calculateStandardDeviation(List<double> numbers, double mean) {
+    if (numbers.isEmpty) return 0.0;
+
+    double sumOfSquaredDiffs = numbers
+        .map((number) => (number - mean) * (number - mean))
+        .reduce((a, b) => a + b);
+
+    return sqrt(sumOfSquaredDiffs / numbers.length);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Statistics calculator'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _controller,
+              decoration: InputDecoration(
+                labelText: 'Enter numbers separated by commas',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _calculateStatistics,
+              child: Text('Calculate'),
+            ),
+            SizedBox(height: 20),
+            Text(
+              _result,
+              style: Theme.of(context).textTheme.headline6,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
